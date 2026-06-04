@@ -267,8 +267,11 @@ with col_spd:
     )
 
     cats  = ["압박반응", "측면커버", "라인복귀", "스프린트"]
-    p_val = [player["speed"][k] for k in ["press", "cover", "line", "sprint"]]
-    k_val = [K1_AVG[k] for k in ["press", "cover", "line", "sprint"]]
+    p_val = [float(player["speed"][k]) for k in ["press", "cover", "line", "sprint"]]
+    k_val = [float(K1_AVG[k]) for k in ["press", "cover", "line", "sprint"]]
+
+    all_vals = list(p_val) + list(k_val)
+    max_val = max(all_vals) if all_vals else 6.0
 
     fig_spd = go.Figure()
     fig_spd.add_trace(go.Bar(
@@ -287,15 +290,18 @@ with col_spd:
             y0=kv, y1=kv,
             line=dict(color="#ef4444", width=2, dash="dot"),
         )
-    fig_spd.update_layout(
-        paper_bgcolor="#111520", plot_bgcolor="#111520",
-        font_color="#e4e8f2", height=230,
-        margin=dict(l=10, r=10, t=20, b=30),
-        showlegend=False,
-        xaxis=dict(gridcolor="#1e2433", tickfont=dict(size=11)),
-        yaxis=dict(gridcolor="#1e2433", title="초 (낮을수록 빠름)",
-                   titlefont=dict(size=10), range=[0, max(p_val + k_val) * 1.2]),
-    )
+    try:
+        fig_spd.update_layout(
+            paper_bgcolor="#111520", plot_bgcolor="#111520",
+            font_color="#e4e8f2", height=230,
+            margin=dict(l=10, r=10, t=20, b=30),
+            showlegend=False,
+            xaxis=dict(gridcolor="#1e2433", tickfont=dict(size=11)),
+            yaxis=dict(gridcolor="#1e2433", title="초 (낮을수록 빠름)",
+                       titlefont=dict(size=10), range=[0, max_val * 1.2]),
+        )
+    except Exception as e:
+        st.error(f"차트 오류: {e}")
     st.plotly_chart(fig_spd, use_container_width=True)
     st.caption("🔴 점선 = K1 평균  |  막대가 낮을수록 빠른 전환")
 
