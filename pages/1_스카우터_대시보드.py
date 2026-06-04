@@ -297,8 +297,9 @@ with col_spd:
             margin=dict(l=10, r=10, t=20, b=30),
             showlegend=False,
             xaxis=dict(gridcolor="#1e2433", tickfont=dict(size=11)),
-            yaxis=dict(gridcolor="#1e2433", title="초 (낮을수록 빠름)",
-                       titlefont=dict(size=10), range=[0, max_val * 1.2]),
+            yaxis=dict(gridcolor="#1e2433",
+                       title=dict(text="초 (낮을수록 빠름)", font=dict(size=10)),
+                       tickfont=dict(size=10), range=[0, max_val * 1.2]),
         )
     except Exception as e:
         st.error(f"차트 오류: {e}")
