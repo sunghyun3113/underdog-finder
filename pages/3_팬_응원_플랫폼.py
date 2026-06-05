@@ -121,29 +121,37 @@ with tab1:
             rank    = row_start + col_idx + 1
             hearts  = st.session_state.hearts[p["id"]]
             liked   = st.session_state.liked[p["id"]]
-            v_color = get_verdict_color(p["verdict_type"])
-            s_color = get_speed_color(p["speed"]["overall"])
-            ha      = heat_avg(p)
+            # 팬 플랫폼: 분석 수치 비공개 (스카우터 전용)
 
             with cols[col_idx]:
-                # ── 선수 카드 (TOP3 금/은/동 테두리) ─────────────────────
+                # ── 선수 카드 (TOP3 금/은/동 테두리, 분석 수치 비공개) ──
                 rank_cls = (
                     "fan-card rank-1" if rank == 1 else
                     "fan-card rank-2" if rank == 2 else
                     "fan-card rank-3" if rank == 3 else
                     "fan-card"
                 )
+                # 스카우터 조회 요약
+                scout_html = ""
+                if p["scouts"]:
+                    s = p["scouts"][0]
+                    scout_html = (
+                        f"<div style='color:#8892a4;font-size:0.72rem;"
+                        f"margin-top:0.35rem'>"
+                        f"👀 {s['club']} 스카우터 {s['count']}회 조회</div>"
+                    )
+
                 st.markdown(f"""
-                <div class="{rank_cls}" style="padding:1rem 1rem 0.7rem">
+                <div class="{rank_cls}" style="padding:1rem 1rem 0.8rem">
                   <div style="display:flex;justify-content:space-between;
                               align-items:flex-start;margin-bottom:0.5rem">
                     <span style="font-size:1.15rem;font-weight:800;color:#e4e8f2">
                       {rank_badge(rank)}
                     </span>
-                    <span style="background:{v_color}22;color:{v_color};
-                                 font-size:0.64rem;border-radius:4px;
-                                 padding:2px 8px;font-weight:600;letter-spacing:0.04em">
-                      {p['verdict_type']}
+                    <span style="background:rgba(100,116,139,0.12);color:#8892a4;
+                                 font-size:0.62rem;border-radius:4px;
+                                 padding:2px 7px;font-weight:600">
+                      {p['league']}
                     </span>
                   </div>
 
@@ -154,19 +162,20 @@ with tab1:
                     {p['name']}
                     <span style="color:#8892a4;font-size:0.78rem">({p['age']}세)</span>
                   </div>
-                  <div style="color:#8892a4;font-size:0.76rem;margin-bottom:0.6rem">
-                    {p['club']} · {p['league']} · {p['pos']}
+                  <div style="color:#8892a4;font-size:0.76rem;margin-bottom:0.5rem">
+                    {p['club']} · {p['pos']}
                   </div>
 
-                  <div style="display:flex;gap:0.7rem;font-size:0.76rem;
-                              color:#c5cdd9;flex-wrap:wrap;margin-bottom:0.5rem">
-                    <span>⚡ <b style="color:{s_color}">{p['speed']['overall']}초</b></span>
-                    <span>🗺️ <b>{ha}%</b></span>
-                    <span>🔗 <b style="color:#a78bfa">{p['sim'][0]['score']}%</b></span>
-                  </div>
-
-                  <div style="font-size:1.05rem;font-weight:700;color:#ec4899">
+                  <div style="font-size:1.1rem;font-weight:700;color:#ec4899">
                     💗 {hearts:,}
+                  </div>
+
+                  {scout_html}
+
+                  <div style="margin-top:0.6rem;font-size:0.68rem;
+                              color:#4a5568;border-top:1px solid #1e2433;
+                              padding-top:0.45rem">
+                    💡 상세 분석 데이터는 구단 스카우터 전용입니다
                   </div>
                 </div>
                 """, unsafe_allow_html=True)

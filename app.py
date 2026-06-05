@@ -27,9 +27,10 @@ with st.sidebar:
     )
     st.markdown("---")
     st.markdown("### 메뉴")
-    st.page_link("app.py",                         label="🏠  홈")
-    st.page_link("pages/1_스카우터_대시보드.py",    label="🔍  스카우터 대시보드")
-    st.page_link("pages/2_팬_응원_플랫폼.py",       label="💗  팬 응원 플랫폼")
+    st.page_link("app.py",                          label="🏠  홈")
+    st.page_link("pages/1_영상_분석_센터.py",        label="📹  영상 분석 센터")
+    st.page_link("pages/2_스카우터_대시보드.py",     label="🔍  스카우터 대시보드")
+    st.page_link("pages/3_팬_응원_플랫폼.py",        label="💗  팬 응원 플랫폼")
     st.markdown("---")
     st.markdown(
         "<small style='color:#5a6478'>K리그 하부 리그 AI 스카우팅<br>© 2026 Underdog Finder</small>",
@@ -120,10 +121,10 @@ st.markdown('<div class="section-header">시작하기</div>', unsafe_allow_html=
 b1, b2, _ = st.columns([1, 1, 3])
 with b1:
     if st.button("🔍  스카우터 대시보드 →", use_container_width=True):
-        st.switch_page("pages/1_스카우터_대시보드.py")
+        st.switch_page("pages/2_스카우터_대시보드.py")
 with b2:
     if st.button("💗  팬 응원 플랫폼 →", use_container_width=True):
-        st.switch_page("pages/2_팬_응원_플랫폼.py")
+        st.switch_page("pages/3_팬_응원_플랫폼.py")
 
 # ── 면책 문구 ─────────────────────────────────────────────────────────────────
 st.markdown(
