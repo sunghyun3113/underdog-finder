@@ -1,3 +1,6 @@
+import json
+import os
+
 # ========================================
 # ⚠️  DISCLAIMER / 면책 문구
 # ========================================
@@ -11,6 +14,38 @@
 #   분석 수치는 모두 시뮬레이션입니다.
 # - 본 서비스는 공모전 시연 목적으로 제작되었습니다.
 # ========================================
+
+def load_analysis_data() -> dict:
+    data = {}
+    files = {
+        "siheung": "data/siheung_analysis.json",
+        "yonsei":  "data/yonsei_analysis.json",
+        "hannam":  "data/hannam_analysis.json",
+    }
+    for key, path in files.items():
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                data[key] = json.load(f)
+    return data
+
+ANALYSIS_DATA = load_analysis_data()
+
+
+def get_real_speed(player_id: int) -> tuple:
+    for data in ANALYSIS_DATA.values():
+        for p in data.get("players", []):
+            if p["id"] == player_id:
+                return p.get("speed"), p.get("transition_method", "estimated")
+    return None, None
+
+
+def get_real_heatmap(player_id: int) -> list:
+    for data in ANALYSIS_DATA.values():
+        for p in data.get("players", []):
+            if p["id"] == player_id:
+                return p.get("heatmap_points", [])
+    return []
+
 
 K1_AVG = {"overall": 3.8, "press": 2.1, "cover": 4.2, "line": 3.9, "sprint": 4.8}
 
@@ -1165,6 +1200,29 @@ PLAYERS.extend([
         },
     },
 ])
+
+
+# ── 실제 영상 분석 데이터 동적 반영 ──────────────────────────────────────────
+# 시흥(1~5) · 연세대(31~35) · 한남대(41~45) 대상
+_REAL_DATA_IDS = set(range(1, 6)) | set(range(31, 36)) | set(range(41, 46))
+
+for _p in PLAYERS:
+    if _p["id"] in _REAL_DATA_IDS:
+        _real_speed, _method = get_real_speed(_p["id"])
+        if _real_speed:
+            _p["speed"]           = _real_speed
+            _p["data_source"]     = "실제 영상 분석"
+            _p["analysis_method"] = _method
+        else:
+            _p["data_source"]     = "AI 추정값"
+            _p["analysis_method"] = "estimated"
+
+        _real_heat = get_real_heatmap(_p["id"])
+        if _real_heat:
+            _p["real_heatmap"] = _real_heat
+    else:
+        _p["data_source"]     = "AI 추정값"
+        _p["analysis_method"] = "estimated"
 
 
 def get_players_by_league(league: str) -> list:

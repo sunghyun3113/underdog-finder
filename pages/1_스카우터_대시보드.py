@@ -150,6 +150,20 @@ with st.sidebar:
     # 선수 프로필 카드
     v_color = get_verdict_color(player["verdict_type"])
     v_text  = "✅ 영입 권장" if player["verdict_type"] == "safe" else "⚠️ 조건부"
+
+    # 데이터 출처 배지
+    data_src = player.get("data_source", "AI 추정값")
+    if data_src == "실제 영상 분석":
+        src_badge = ("<span style='background:rgba(16,185,129,0.15);color:#10b981;"
+                     "border:1px solid rgba(16,185,129,0.35);border-radius:6px;"
+                     "padding:2px 9px;font-size:0.7rem;font-weight:600'>"
+                     "✅ 실제 영상 분석값</span>")
+    else:
+        src_badge = ("<span style='background:rgba(100,116,139,0.15);color:#94a3b8;"
+                     "border:1px solid rgba(100,116,139,0.3);border-radius:6px;"
+                     "padding:2px 9px;font-size:0.7rem;font-weight:600'>"
+                     "📊 AI 추정값</span>")
+
     st.markdown(f"""
     <div style="background:#111520;border-radius:12px;
                 border:1px solid rgba(255,255,255,0.07);
@@ -165,13 +179,15 @@ with st.sidebar:
       <div style="color:#5a6478;font-size:0.78rem;margin-top:0.1rem">
         등번호 #{player['number']}
       </div>
-      <div style="margin-top:0.65rem">
+      <div style="margin-top:0.6rem;display:flex;gap:0.4rem;
+                  justify-content:center;flex-wrap:wrap">
         <span style="background:{v_color}22;color:{v_color};
                      border:1px solid {v_color}66;border-radius:6px;
                      padding:3px 12px;font-size:0.78rem;font-weight:600">
           {v_text}
         </span>
       </div>
+      <div style="margin-top:0.45rem">{src_badge}</div>
     </div>
     """, unsafe_allow_html=True)
 
