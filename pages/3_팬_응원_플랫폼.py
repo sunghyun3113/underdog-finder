@@ -253,7 +253,35 @@ with tab2:
         "ST":  (0.5,  0.88),
     }
 
-    # ── 3. matplotlib 피치 ───────────────────────────────────────────────────
+    # ── 3. 한글 폰트 설정 ────────────────────────────────────────────────────
+    import matplotlib.font_manager as fm
+    import platform
+    import subprocess
+
+    def set_korean_font():
+        system = platform.system()
+        if system == "Linux":
+            font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
+            if not os.path.exists(font_path):
+                subprocess.run(
+                    ["apt-get", "install", "-y", "fonts-nanum"],
+                    capture_output=True,
+                )
+                fm._load_fontmanager(try_read_cache=False)
+            if os.path.exists(font_path):
+                font = fm.FontProperties(fname=font_path)
+                plt.rcParams["font.family"] = font.get_name()
+            else:
+                plt.rcParams["font.family"] = "DejaVu Sans"
+        elif system == "Darwin":
+            plt.rcParams["font.family"] = "AppleGothic"
+        elif system == "Windows":
+            plt.rcParams["font.family"] = "Malgun Gothic"
+
+    set_korean_font()
+    plt.rcParams["axes.unicode_minus"] = False
+
+    # ── 4. matplotlib 피치 ───────────────────────────────────────────────────
     fig_p, ax = plt.subplots(figsize=(5.0, 7.8), facecolor="#07090f")
     ax.set_facecolor("#1a5c2e")
     ax.set_xlim(0.0, 1.0)
