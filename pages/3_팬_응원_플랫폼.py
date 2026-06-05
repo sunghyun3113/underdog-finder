@@ -224,69 +224,93 @@ with tab2:
         unsafe_allow_html=True,
     )
 
-    # 포지션별 최다 하트 선수
+    # ── 1. session_state.hearts 기준 포지션별 1위 딕셔너리 ──────────────────
+    best_by_pos: dict = {}
+    for player in PLAYERS:
+        pos    = player["pos"]
+        hearts = st.session_state.hearts.get(player["id"], player["weekly_hearts"])
+        if pos not in best_by_pos or hearts > best_by_pos[pos]["hearts"]:
+            best_by_pos[pos] = {
+                "name":   player["name"],
+                "hearts": hearts,
+                "emoji":  player["emoji"],
+                "club":   player["club"],
+            }
+
     FORMATION = ["GK", "LB", "CB", "RB", "CDM", "LW", "CM", "RW", "CAM", "ST"]
-    best: dict = {}
-    for pos in FORMATION:
-        cands = [p for p in PLAYERS if p["pos"] == pos]
-        best[pos] = (
-            max(cands, key=lambda p: st.session_state.hearts[p["id"]])
-            if cands else None
-        )
 
-    # ── matplotlib 피치 (portrait: 68w × 105h) ───────────────────────────
-    PW, PH = 68, 105
-    fig_p, ax = plt.subplots(figsize=(5.0, 7.8), facecolor="#07090f")
-    ax.set_facecolor("#1a5c2e")
-    ax.set_xlim(0, PW)
-    ax.set_ylim(0, PH)
-
-    lc, lw_ = "white", 1.4
-    ax.add_patch(patches.Rectangle((2, 2), PW - 4, PH - 4,
-                                   fill=False, edgecolor=lc, linewidth=lw_))
-    ax.axhline(PH / 2, color=lc, linewidth=lw_)
-    ax.add_patch(patches.Circle((PW / 2, PH / 2), 5.8,
-                                fill=False, edgecolor=lc, linewidth=lw_))
-    ax.plot(PW / 2, PH / 2, "o", color=lc, markersize=2)
-    for bx, by, bw, bh in [
-        ((PW - 40) / 2, 2, 40, 15),
-        ((PW - 40) / 2, PH - 17, 40, 15),
-        ((PW - 20) / 2, 2, 20, 6),
-        ((PW - 20) / 2, PH - 8, 20, 6),
-    ]:
-        ax.add_patch(patches.Rectangle((bx, by), bw, bh,
-                                       fill=False, edgecolor=lc, linewidth=lw_))
-
-    POS_XY = {
-        "GK":  (PW / 2, 8),
-        "LB":  (11, 23), "CB": (PW / 2, 23), "RB": (57, 23),
-        "CDM": (PW / 2, 38),
-        "LW":  (9, 57),  "CM": (PW / 2, 52), "RW": (59, 57),
-        "CAM": (PW / 2, 68),
-        "ST":  (PW / 2, 85),
+    # ── 2. 포지션 좌표 (정규화 0~1) ─────────────────────────────────────────
+    pos_coords = {
+        "GK":  (0.5,  0.05),
+        "CB":  (0.5,  0.20),
+        "LB":  (0.2,  0.20),
+        "RB":  (0.8,  0.20),
+        "CDM": (0.5,  0.38),
+        "CM":  (0.5,  0.50),
+        "CAM": (0.5,  0.62),
+        "LW":  (0.2,  0.75),
+        "RW":  (0.8,  0.75),
+        "ST":  (0.5,  0.88),
     }
 
-    for pos, (cx, cy) in POS_XY.items():
-        player = best.get(pos)
-        if player:
-            h     = st.session_state.hearts[player["id"]]
-            color = f"#{player['color']}"
-            ax.add_patch(patches.Circle((cx, cy), 4.0, color=color,
-                                        zorder=3, alpha=0.92))
-            ax.add_patch(patches.Circle((cx, cy), 4.0, fill=False,
-                                        edgecolor="white", linewidth=1.3, zorder=4))
-            ax.text(cx, cy - 5.8, player["name"],
-                    ha="center", va="top", fontsize=5.8,
+    # ── 3. matplotlib 피치 ───────────────────────────────────────────────────
+    fig_p, ax = plt.subplots(figsize=(5.0, 7.8), facecolor="#07090f")
+    ax.set_facecolor("#1a5c2e")
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 1.0)
+
+    lc, lw_ = "white", 1.4
+    # 외곽선
+    ax.add_patch(patches.Rectangle((0.03, 0.02), 0.94, 0.96,
+                                   fill=False, edgecolor=lc, linewidth=lw_))
+    # 중앙선
+    ax.axhline(0.5, color=lc, linewidth=lw_)
+    # 센터 서클
+    ax.add_patch(patches.Circle((0.5, 0.5), 0.07,
+                                fill=False, edgecolor=lc, linewidth=lw_))
+    ax.plot(0.5, 0.5, "o", color=lc, markersize=2)
+    # 페널티 박스 (상·하)
+    for y0, h_box in [(0.02, 0.14), (0.84, 0.14)]:
+        ax.add_patch(patches.Rectangle((0.21, y0), 0.58, h_box,
+                                       fill=False, edgecolor=lc, linewidth=lw_))
+    # 골박스 (상·하)
+    for y0, h_box in [(0.02, 0.055), (0.925, 0.055)]:
+        ax.add_patch(patches.Rectangle((0.35, y0), 0.30, h_box,
+                                       fill=False, edgecolor=lc, linewidth=lw_))
+
+    # ── 4. 선수 마커 그리기 ──────────────────────────────────────────────────
+    RADIUS = 0.045
+
+    for pos, (nx, ny) in pos_coords.items():
+        info = best_by_pos.get(pos)
+        if info:
+            # 핑크 원
+            ax.add_patch(patches.Circle((nx, ny), RADIUS,
+                                        color="#ec4899", zorder=3, alpha=0.92))
+            ax.add_patch(patches.Circle((nx, ny), RADIUS,
+                                        fill=False, edgecolor="white",
+                                        linewidth=1.5, zorder=4))
+            # 원 안 이모지
+            ax.text(nx, ny + 0.004, info["emoji"],
+                    ha="center", va="center", fontsize=7, zorder=5)
+            # 이름 (원 아래)
+            ax.text(nx, ny - RADIUS - 0.012, info["name"],
+                    ha="center", va="top", fontsize=5.5,
                     color="white", fontweight="bold", zorder=5)
-            ax.text(cx, cy - 7.8, f"{h:,}",
-                    ha="center", va="top", fontsize=5.0,
+            # 하트수 (이름 아래)
+            ax.text(nx, ny - RADIUS - 0.030, f"💗{info['hearts']:,}",
+                    ha="center", va="top", fontsize=4.8,
                     color="#f9a8d4", zorder=5)
         else:
-            ax.add_patch(patches.Circle((cx, cy), 4.0, color="#374151",
-                                        zorder=3, alpha=0.85))
-            ax.text(cx, cy, "TBD",
+            # TBD
+            ax.add_patch(patches.Circle((nx, ny), RADIUS,
+                                        color="#374151", zorder=3, alpha=0.85))
+            ax.text(nx, ny, "TBD",
                     ha="center", va="center", fontsize=5.8,
                     color="#9ca3af", fontweight="bold", zorder=5)
+            ax.text(nx, ny - RADIUS - 0.012, pos,
+                    ha="center", va="top", fontsize=5.0,
+                    color="#5a6478", zorder=5)
 
     ax.set_xticks([])
     ax.set_yticks([])
@@ -306,10 +330,10 @@ with tab2:
             unsafe_allow_html=True,
         )
         for pos in FORMATION:
-            p = best.get(pos)
-            if p:
-                h       = st.session_state.hearts[p["id"]]
-                v_color = get_verdict_color(p["verdict_type"])
+            info = best_by_pos.get(pos)
+            if info:
+                club_short = (info["club"].replace("대학교", "대")
+                              if "대학교" in info["club"] else info["club"])
                 st.markdown(f"""
                 <div style="background:#111520;border-radius:8px;
                             border:1px solid rgba(255,255,255,0.07);
@@ -319,13 +343,13 @@ with tab2:
                     <span style="color:#8892a4;font-size:0.68rem;font-weight:700;
                                  letter-spacing:0.08em">{pos}</span>
                     <span style="color:#e4e8f2;font-weight:600;margin-left:0.5rem;
-                                 font-size:0.88rem">{p['name']}</span>
+                                 font-size:0.88rem">{info['emoji']} {info['name']}</span>
                     <span style="color:#8892a4;font-size:0.73rem;margin-left:0.3rem">
-                      · {p['club'].split('대학교')[0] if '대학교' in p['club'] else p['club']}
+                      · {club_short}
                     </span>
                   </div>
                   <span style="color:#ec4899;font-weight:700;font-size:0.88rem">
-                    💗{h:,}
+                    💗{info['hearts']:,}
                   </span>
                 </div>
                 """, unsafe_allow_html=True)
