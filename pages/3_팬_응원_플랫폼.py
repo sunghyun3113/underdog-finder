@@ -224,8 +224,8 @@ with tab2:
         unsafe_allow_html=True,
     )
 
-    # ── 1. session_state.hearts 기준 포지션별 1위 딕셔너리 ──────────────────
-    best_by_pos: dict = {}
+    # ── 포지션별 1위 선수 찾기 ──────────────────────────────────────────────
+    best_by_pos = {}
     for player in PLAYERS:
         pos    = player["pos"]
         hearts = st.session_state.hearts.get(player["id"], player["weekly_hearts"])
@@ -239,117 +239,112 @@ with tab2:
 
     FORMATION = ["GK", "LB", "CB", "RB", "CDM", "LW", "CM", "RW", "CAM", "ST"]
 
-    # ── 2. 포지션 좌표 (정규화 0~1) ─────────────────────────────────────────
+    # ── 포지션 좌표 (left%, top% 기준) ──────────────────────────────────────
     pos_coords = {
-        "GK":  (0.5,  0.05),
-        "CB":  (0.5,  0.20),
-        "LB":  (0.2,  0.20),
-        "RB":  (0.8,  0.20),
-        "CDM": (0.5,  0.38),
-        "CM":  (0.5,  0.50),
-        "CAM": (0.5,  0.62),
-        "LW":  (0.2,  0.75),
-        "RW":  (0.8,  0.75),
-        "ST":  (0.5,  0.88),
+        "GK":  (50, 88),
+        "CB":  (50, 72),
+        "LB":  (20, 72),
+        "RB":  (80, 72),
+        "CDM": (50, 58),
+        "CM":  (50, 45),
+        "CAM": (50, 32),
+        "LW":  (20, 18),
+        "RW":  (80, 18),
+        "ST":  (50, 10),
     }
 
-    # ── 3. 한글 폰트 설정 ────────────────────────────────────────────────────
-    import matplotlib.font_manager as fm
-    import platform
-    import subprocess
-
-    def set_korean_font():
-        system = platform.system()
-        if system == "Linux":
-            font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
-            if not os.path.exists(font_path):
-                subprocess.run(
-                    ["apt-get", "install", "-y", "fonts-nanum"],
-                    capture_output=True,
-                )
-                fm._load_fontmanager(try_read_cache=False)
-            if os.path.exists(font_path):
-                font = fm.FontProperties(fname=font_path)
-                plt.rcParams["font.family"] = font.get_name()
-            else:
-                plt.rcParams["font.family"] = "DejaVu Sans"
-        elif system == "Darwin":
-            plt.rcParams["font.family"] = "AppleGothic"
-        elif system == "Windows":
-            plt.rcParams["font.family"] = "Malgun Gothic"
-
-    set_korean_font()
-    plt.rcParams["axes.unicode_minus"] = False
-
-    # ── 4. matplotlib 피치 ───────────────────────────────────────────────────
-    fig_p, ax = plt.subplots(figsize=(5.0, 7.8), facecolor="#07090f")
-    ax.set_facecolor("#1a5c2e")
-    ax.set_xlim(0.0, 1.0)
-    ax.set_ylim(0.0, 1.0)
-
-    lc, lw_ = "white", 1.4
-    # 외곽선
-    ax.add_patch(patches.Rectangle((0.03, 0.02), 0.94, 0.96,
-                                   fill=False, edgecolor=lc, linewidth=lw_))
-    # 중앙선
-    ax.axhline(0.5, color=lc, linewidth=lw_)
-    # 센터 서클
-    ax.add_patch(patches.Circle((0.5, 0.5), 0.07,
-                                fill=False, edgecolor=lc, linewidth=lw_))
-    ax.plot(0.5, 0.5, "o", color=lc, markersize=2)
-    # 페널티 박스 (상·하)
-    for y0, h_box in [(0.02, 0.14), (0.84, 0.14)]:
-        ax.add_patch(patches.Rectangle((0.21, y0), 0.58, h_box,
-                                       fill=False, edgecolor=lc, linewidth=lw_))
-    # 골박스 (상·하)
-    for y0, h_box in [(0.02, 0.055), (0.925, 0.055)]:
-        ax.add_patch(patches.Rectangle((0.35, y0), 0.30, h_box,
-                                       fill=False, edgecolor=lc, linewidth=lw_))
-
-    # ── 4. 선수 마커 그리기 ──────────────────────────────────────────────────
-    RADIUS = 0.045
-
-    for pos, (nx, ny) in pos_coords.items():
-        info = best_by_pos.get(pos)
-        if info:
-            # 핑크 원
-            ax.add_patch(patches.Circle((nx, ny), RADIUS,
-                                        color="#ec4899", zorder=3, alpha=0.92))
-            ax.add_patch(patches.Circle((nx, ny), RADIUS,
-                                        fill=False, edgecolor="white",
-                                        linewidth=1.5, zorder=4))
-            # 원 안 이모지
-            ax.text(nx, ny + 0.004, info["emoji"],
-                    ha="center", va="center", fontsize=7, zorder=5)
-            # 이름 (원 아래)
-            ax.text(nx, ny - RADIUS - 0.012, info["name"],
-                    ha="center", va="top", fontsize=5.5,
-                    color="white", fontweight="bold", zorder=5)
-            # 하트수 (이름 아래)
-            ax.text(nx, ny - RADIUS - 0.030, f"💗{info['hearts']:,}",
-                    ha="center", va="top", fontsize=4.8,
-                    color="#f9a8d4", zorder=5)
+    # ── 선수 마커 HTML 생성 ──────────────────────────────────────────────────
+    markers_html = ""
+    for pos, (left, top) in pos_coords.items():
+        if pos in best_by_pos:
+            p      = best_by_pos[pos]
+            name   = p["name"]
+            emoji  = p["emoji"]
+            hearts_str = f"💗{p['hearts']:,}"
         else:
-            # TBD
-            ax.add_patch(patches.Circle((nx, ny), RADIUS,
-                                        color="#374151", zorder=3, alpha=0.85))
-            ax.text(nx, ny, "TBD",
-                    ha="center", va="center", fontsize=5.8,
-                    color="#9ca3af", fontweight="bold", zorder=5)
-            ax.text(nx, ny - RADIUS - 0.012, pos,
-                    ha="center", va="top", fontsize=5.0,
-                    color="#5a6478", zorder=5)
+            name   = "TBD"
+            emoji  = "?"
+            hearts_str = ""
 
-    ax.set_xticks([])
-    ax.set_yticks([])
-    for spine in ax.spines.values():
-        spine.set_visible(False)
-    fig_p.tight_layout(pad=0.3)
+        markers_html += f"""
+        <div style="
+            position:absolute;
+            left:{left}%;
+            top:{top}%;
+            transform:translate(-50%,-50%);
+            text-align:center;
+            z-index:10;
+        ">
+            <div style="
+                width:52px;height:52px;
+                background:rgba(236,72,153,0.9);
+                border-radius:50%;
+                border:2px solid white;
+                display:flex;align-items:center;
+                justify-content:center;
+                font-size:22px;
+                margin:0 auto 4px;
+                box-shadow:0 2px 8px rgba(0,0,0,0.4);
+            ">{emoji}</div>
+            <div style="
+                color:white;
+                font-size:12px;
+                font-weight:700;
+                text-shadow:1px 1px 3px rgba(0,0,0,0.8);
+                white-space:nowrap;
+            ">{name}</div>
+            <div style="
+                color:#fce7f3;
+                font-size:10px;
+                text-shadow:1px 1px 2px rgba(0,0,0,0.8);
+            ">{hearts_str}</div>
+        </div>
+        """
+
+    # ── HTML 축구장 ──────────────────────────────────────────────────────────
+    field_html = f"""
+    <div style="
+        position:relative;
+        width:100%;
+        max-width:500px;
+        margin:0 auto;
+        background:#2d6a2d;
+        border-radius:12px;
+        overflow:hidden;
+        border:3px solid #1a4a1a;
+    ">
+        <svg width="100%" viewBox="0 0 300 450" style="display:block;">
+            <rect width="300" height="450" fill="#2d6a2d"/>
+            <rect y="0"   width="300" height="50" fill="#357a35"/>
+            <rect y="100" width="300" height="50" fill="#357a35"/>
+            <rect y="200" width="300" height="50" fill="#357a35"/>
+            <rect y="300" width="300" height="50" fill="#357a35"/>
+            <rect y="400" width="300" height="50" fill="#357a35"/>
+            <rect x="15" y="15" width="270" height="420"
+                  fill="none" stroke="white" stroke-width="2"/>
+            <line x1="15" y1="225" x2="285" y2="225"
+                  stroke="white" stroke-width="2"/>
+            <circle cx="150" cy="225" r="40"
+                    fill="none" stroke="white" stroke-width="2"/>
+            <circle cx="150" cy="225" r="3" fill="white"/>
+            <rect x="75"  y="15"  width="150" height="55"
+                  fill="none" stroke="white" stroke-width="2"/>
+            <rect x="105" y="15"  width="90"  height="25"
+                  fill="none" stroke="white" stroke-width="2"/>
+            <rect x="75"  y="380" width="150" height="55"
+                  fill="none" stroke="white" stroke-width="2"/>
+            <rect x="105" y="410" width="90"  height="25"
+                  fill="none" stroke="white" stroke-width="2"/>
+        </svg>
+        <div style="position:absolute;top:0;left:0;width:100%;height:100%;">
+            {markers_html}
+        </div>
+    </div>
+    """
 
     col_pitch, col_list = st.columns([1, 1])
     with col_pitch:
-        st.pyplot(fig_p, use_container_width=True)
-        plt.close(fig_p)
+        st.markdown(field_html, unsafe_allow_html=True)
 
     with col_list:
         st.markdown(
