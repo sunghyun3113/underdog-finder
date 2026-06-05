@@ -216,13 +216,6 @@ with tab1:
 
 # ══════════════════════ TAB 2: 베스트 11 ══════════════════════════════════════
 with tab2:
-    st.markdown(
-        "<p style='color:#e4e8f2;font-size:1rem;font-weight:600;margin-bottom:0.3rem'>"
-        "🗳️ 팬 선정 베스트 XI</p>"
-        "<p style='color:#8892a4;font-size:0.82rem;margin-bottom:1rem'>"
-        "포지션별 이번 주 응원 1위 선수를 자동 선정합니다.</p>",
-        unsafe_allow_html=True,
-    )
 
     # ── 포지션별 1위 선수 찾기 ──────────────────────────────────────────────
     best_by_pos = {}
@@ -237,153 +230,87 @@ with tab2:
                 "club":   player["club"],
             }
 
-    FORMATION = ["GK", "LB", "CB", "RB", "CDM", "LW", "CM", "RW", "CAM", "ST"]
-
-    # ── 포지션 좌표 (left%, top% 기준) ──────────────────────────────────────
-    pos_coords = {
-        "GK":  (50, 88),
-        "CB":  (50, 72),
-        "LB":  (20, 72),
-        "RB":  (80, 72),
-        "CDM": (50, 58),
-        "CM":  (50, 45),
-        "CAM": (50, 32),
-        "LW":  (20, 18),
-        "RW":  (80, 18),
-        "ST":  (50, 10),
-    }
-
-    # ── 선수 마커 HTML 생성 ──────────────────────────────────────────────────
-    markers_html = ""
-    for pos, (left, top) in pos_coords.items():
+    # ── 선수 카드 컴포넌트 ────────────────────────────────────────────────────
+    def show_player_card(pos: str) -> None:
         if pos in best_by_pos:
-            p      = best_by_pos[pos]
-            name   = p["name"]
-            emoji  = p["emoji"]
-            hearts_str = f"💗{p['hearts']:,}"
+            p = best_by_pos[pos]
+            st.markdown(f"""
+            <div style='text-align:center;
+                        background:rgba(236,72,153,0.15);
+                        border:1px solid rgba(236,72,153,0.4);
+                        border-radius:10px;
+                        padding:8px 4px;'>
+                <div style='font-size:24px'>{p['emoji']}</div>
+                <div style='font-size:12px;font-weight:700;
+                            color:#f9fafb'>{p['name']}</div>
+                <div style='font-size:10px;color:#94a3b8'>{pos}</div>
+                <div style='font-size:11px;color:#ec4899'>
+                    💗{p['hearts']:,}</div>
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            name   = "TBD"
-            emoji  = "?"
-            hearts_str = ""
+            st.markdown(f"""
+            <div style='text-align:center;
+                        background:rgba(100,116,139,0.1);
+                        border:1px dashed rgba(100,116,139,0.3);
+                        border-radius:10px;
+                        padding:8px 4px;'>
+                <div style='font-size:24px'>❓</div>
+                <div style='font-size:12px;color:#64748b'>TBD</div>
+                <div style='font-size:10px;color:#475569'>{pos}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-        markers_html += f"""
-        <div style="
-            position:absolute;
-            left:{left}%;
-            top:{top}%;
-            transform:translate(-50%,-50%);
-            text-align:center;
-            z-index:10;
-        ">
-            <div style="
-                width:52px;height:52px;
-                background:rgba(236,72,153,0.9);
-                border-radius:50%;
-                border:2px solid white;
-                display:flex;align-items:center;
-                justify-content:center;
-                font-size:22px;
-                margin:0 auto 4px;
-                box-shadow:0 2px 8px rgba(0,0,0,0.4);
-            ">{emoji}</div>
-            <div style="
-                color:white;
-                font-size:12px;
-                font-weight:700;
-                text-shadow:1px 1px 3px rgba(0,0,0,0.8);
-                white-space:nowrap;
-            ">{name}</div>
-            <div style="
-                color:#fce7f3;
-                font-size:10px;
-                text-shadow:1px 1px 2px rgba(0,0,0,0.8);
-            ">{hearts_str}</div>
-        </div>
-        """
+    # ── 포메이션 렌더링 ───────────────────────────────────────────────────────
+    st.markdown("### 🏆 하부 리그 베스트 11")
+    st.caption("팬 응원 수 기준 포지션별 1위 선수")
 
-    # ── HTML 축구장 ──────────────────────────────────────────────────────────
-    field_html = f"""
-    <div style="
-        position:relative;
-        width:100%;
-        max-width:500px;
-        margin:0 auto;
-        background:#2d6a2d;
-        border-radius:12px;
-        overflow:hidden;
-        border:3px solid #1a4a1a;
-    ">
-        <svg width="100%" viewBox="0 0 300 450" style="display:block;">
-            <rect width="300" height="450" fill="#2d6a2d"/>
-            <rect y="0"   width="300" height="50" fill="#357a35"/>
-            <rect y="100" width="300" height="50" fill="#357a35"/>
-            <rect y="200" width="300" height="50" fill="#357a35"/>
-            <rect y="300" width="300" height="50" fill="#357a35"/>
-            <rect y="400" width="300" height="50" fill="#357a35"/>
-            <rect x="15" y="15" width="270" height="420"
-                  fill="none" stroke="white" stroke-width="2"/>
-            <line x1="15" y1="225" x2="285" y2="225"
-                  stroke="white" stroke-width="2"/>
-            <circle cx="150" cy="225" r="40"
-                    fill="none" stroke="white" stroke-width="2"/>
-            <circle cx="150" cy="225" r="3" fill="white"/>
-            <rect x="75"  y="15"  width="150" height="55"
-                  fill="none" stroke="white" stroke-width="2"/>
-            <rect x="105" y="15"  width="90"  height="25"
-                  fill="none" stroke="white" stroke-width="2"/>
-            <rect x="75"  y="380" width="150" height="55"
-                  fill="none" stroke="white" stroke-width="2"/>
-            <rect x="105" y="410" width="90"  height="25"
-                  fill="none" stroke="white" stroke-width="2"/>
-        </svg>
-        <div style="position:absolute;top:0;left:0;width:100%;height:100%;">
-            {markers_html}
-        </div>
-    </div>
-    """
+    st.markdown("""
+    <div style='background:linear-gradient(180deg, #1a4a1a 0%, #2d6a2d 100%);
+                border-radius:16px;
+                padding:16px;
+                border:2px solid #1a4a1a;'>
+    """, unsafe_allow_html=True)
 
-    col_pitch, col_list = st.columns([1, 1])
-    with col_pitch:
-        st.markdown(field_html, unsafe_allow_html=True)
+    # ST 줄
+    c1, c2, c3 = st.columns([1, 1, 1])
+    with c2: show_player_card("ST")
 
-    with col_list:
-        st.markdown(
-            "<p style='color:#e4e8f2;font-weight:600;font-size:0.9rem;"
-            "margin-bottom:0.6rem'>포지션별 1위</p>",
-            unsafe_allow_html=True,
-        )
-        for pos in FORMATION:
-            info = best_by_pos.get(pos)
-            if info:
-                club_short = (info["club"].replace("대학교", "대")
-                              if "대학교" in info["club"] else info["club"])
-                st.markdown(f"""
-                <div style="background:#111520;border-radius:8px;
-                            border:1px solid rgba(255,255,255,0.07);
-                            padding:0.5rem 0.85rem;margin-bottom:0.32rem;
-                            display:flex;justify-content:space-between;align-items:center">
-                  <div>
-                    <span style="color:#8892a4;font-size:0.68rem;font-weight:700;
-                                 letter-spacing:0.08em">{pos}</span>
-                    <span style="color:#e4e8f2;font-weight:600;margin-left:0.5rem;
-                                 font-size:0.88rem">{info['emoji']} {info['name']}</span>
-                    <span style="color:#8892a4;font-size:0.73rem;margin-left:0.3rem">
-                      · {club_short}
-                    </span>
-                  </div>
-                  <span style="color:#ec4899;font-weight:700;font-size:0.88rem">
-                    💗{info['hearts']:,}
-                  </span>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                <div style="background:#0d1117;border-radius:8px;
-                            padding:0.5rem 0.85rem;margin-bottom:0.32rem;
-                            color:#5a6478;font-size:0.8rem">
-                  <b style="color:#374151">{pos}</b>  —  TBD
-                </div>
-                """, unsafe_allow_html=True)
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+    # LW / CAM / RW 줄
+    c1, c2, c3 = st.columns([1, 1, 1])
+    with c1: show_player_card("LW")
+    with c2: show_player_card("CAM")
+    with c3: show_player_card("RW")
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+    # CM 줄
+    c1, c2, c3 = st.columns([1, 1, 1])
+    with c2: show_player_card("CM")
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+    # CDM 줄
+    c1, c2, c3 = st.columns([1, 1, 1])
+    with c2: show_player_card("CDM")
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+    # LB / CB / RB 줄
+    c1, c2, c3 = st.columns([1, 1, 1])
+    with c1: show_player_card("LB")
+    with c2: show_player_card("CB")
+    with c3: show_player_card("RB")
+
+    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
+    # GK 줄
+    c1, c2, c3 = st.columns([1, 1, 1])
+    with c2: show_player_card("GK")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # ══════════════════════ TAB 3: 내 응원 ════════════════════════════════════════
 with tab3:
