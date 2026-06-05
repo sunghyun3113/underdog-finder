@@ -230,87 +230,48 @@ with tab2:
                 "club":   player["club"],
             }
 
-    # ── 선수 카드 컴포넌트 ────────────────────────────────────────────────────
-    def show_player_card(pos: str) -> None:
+    def show_metric(pos: str) -> None:
         if pos in best_by_pos:
             p = best_by_pos[pos]
-            st.markdown(f"""
-            <div style='text-align:center;
-                        background:rgba(236,72,153,0.15);
-                        border:1px solid rgba(236,72,153,0.4);
-                        border-radius:10px;
-                        padding:8px 4px;'>
-                <div style='font-size:24px'>{p['emoji']}</div>
-                <div style='font-size:12px;font-weight:700;
-                            color:#f9fafb'>{p['name']}</div>
-                <div style='font-size:10px;color:#94a3b8'>{pos}</div>
-                <div style='font-size:11px;color:#ec4899'>
-                    💗{p['hearts']:,}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.metric(
+                label=f"{p['emoji']} {pos}",
+                value=p["name"],
+                delta=f"💗 {p['hearts']:,}",
+            )
         else:
-            st.markdown(f"""
-            <div style='text-align:center;
-                        background:rgba(100,116,139,0.1);
-                        border:1px dashed rgba(100,116,139,0.3);
-                        border-radius:10px;
-                        padding:8px 4px;'>
-                <div style='font-size:24px'>❓</div>
-                <div style='font-size:12px;color:#64748b'>TBD</div>
-                <div style='font-size:10px;color:#475569'>{pos}</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.metric(label=f"❓ {pos}", value="TBD", delta=None)
 
     # ── 포메이션 렌더링 ───────────────────────────────────────────────────────
     st.markdown("### 🏆 하부 리그 베스트 11")
     st.caption("팬 응원 수 기준 포지션별 1위 선수")
 
-    st.markdown("""
-    <div style='background:linear-gradient(180deg, #1a4a1a 0%, #2d6a2d 100%);
-                border-radius:16px;
-                padding:16px;
-                border:2px solid #1a4a1a;'>
-    """, unsafe_allow_html=True)
-
     # ST 줄
-    c1, c2, c3 = st.columns([1, 1, 1])
-    with c2: show_player_card("ST")
-
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    _, c2, _ = st.columns(3)
+    with c2: show_metric("ST")
 
     # LW / CAM / RW 줄
-    c1, c2, c3 = st.columns([1, 1, 1])
-    with c1: show_player_card("LW")
-    with c2: show_player_card("CAM")
-    with c3: show_player_card("RW")
-
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1: show_metric("LW")
+    with c2: show_metric("CAM")
+    with c3: show_metric("RW")
 
     # CM 줄
-    c1, c2, c3 = st.columns([1, 1, 1])
-    with c2: show_player_card("CM")
-
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    _, c2, _ = st.columns(3)
+    with c2: show_metric("CM")
 
     # CDM 줄
-    c1, c2, c3 = st.columns([1, 1, 1])
-    with c2: show_player_card("CDM")
-
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    _, c2, _ = st.columns(3)
+    with c2: show_metric("CDM")
 
     # LB / CB / RB 줄
-    c1, c2, c3 = st.columns([1, 1, 1])
-    with c1: show_player_card("LB")
-    with c2: show_player_card("CB")
-    with c3: show_player_card("RB")
-
-    st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1: show_metric("LB")
+    with c2: show_metric("CB")
+    with c3: show_metric("RB")
 
     # GK 줄
-    c1, c2, c3 = st.columns([1, 1, 1])
-    with c2: show_player_card("GK")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    _, c2, _ = st.columns(3)
+    with c2: show_metric("GK")
 
 # ══════════════════════ TAB 3: 내 응원 ════════════════════════════════════════
 with tab3:
