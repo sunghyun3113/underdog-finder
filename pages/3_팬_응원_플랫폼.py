@@ -230,48 +230,137 @@ with tab2:
                 "club":   player["club"],
             }
 
-    def show_metric(pos: str) -> None:
+    # ── 선수 카드 HTML 생성 함수 ─────────────────────────────────────────────
+    def player_card_html(pos: str, size: str = "normal") -> str:
         if pos in best_by_pos:
-            p = best_by_pos[pos]
-            st.metric(
-                label=f"{p['emoji']} {pos}",
-                value=p["name"],
-                delta=f"💗 {p['hearts']:,}",
-            )
+            p           = best_by_pos[pos]
+            name        = p["name"]
+            emoji       = p["emoji"]
+            hearts_str  = f"{p['hearts']:,}"
+            club        = p["club"]
+            bg          = "rgba(236,72,153,0.2)"
+            border      = "rgba(236,72,153,0.6)"
+            text_color  = "#f9fafb"
+            heart_color = "#f472b6"
         else:
-            st.metric(label=f"❓ {pos}", value="TBD", delta=None)
+            name        = "TBD"
+            emoji       = "❓"
+            hearts_str  = "-"
+            club        = ""
+            bg          = "rgba(100,116,139,0.1)"
+            border      = "rgba(100,116,139,0.3)"
+            text_color  = "#64748b"
+            heart_color = "#64748b"
 
-    # ── 포메이션 렌더링 ───────────────────────────────────────────────────────
-    st.markdown("### 🏆 하부 리그 베스트 11")
-    st.caption("팬 응원 수 기준 포지션별 1위 선수")
+        circle_size = "56px" if size == "normal" else "48px"
+        font_size   = "22px" if size == "normal" else "18px"
 
-    # ST 줄
-    _, c2, _ = st.columns(3)
-    with c2: show_metric("ST")
+        return f"""
+        <div style="text-align:center;padding:4px;">
+            <div style="
+                width:{circle_size};height:{circle_size};
+                background:{bg};
+                border:2px solid {border};
+                border-radius:50%;
+                display:flex;align-items:center;
+                justify-content:center;
+                font-size:{font_size};
+                margin:0 auto 6px;
+                box-shadow:0 0 12px {border};
+            ">{emoji}</div>
+            <div style="
+                color:{text_color};
+                font-size:13px;
+                font-weight:700;
+                margin-bottom:2px;
+            ">{name}</div>
+            <div style="
+                color:#94a3b8;
+                font-size:10px;
+                margin-bottom:2px;
+            ">{club}</div>
+            <div style="
+                color:{heart_color};
+                font-size:11px;
+                font-weight:600;
+            ">💗 {hearts_str}</div>
+        </div>
+        """
 
-    # LW / CAM / RW 줄
+    # ── 필드 CSS ─────────────────────────────────────────────────────────────
+    st.markdown("""
+    <style>
+    .field-container {
+        background: linear-gradient(
+            180deg,
+            #1a3d1a 0%, #1e4d1e 20%, #1a3d1a 40%,
+            #1e4d1e 60%, #1a3d1a 80%, #1e4d1e 100%
+        );
+        border-radius: 16px;
+        border: 3px solid #0f2d0f;
+        padding: 20px 12px;
+        margin: 0 auto;
+        max-width: 600px;
+    }
+    .field-line-top    { border-top:    2px solid rgba(255,255,255,0.5); margin: 0 20px 16px; }
+    .field-line-mid    { border-top:    2px solid rgba(255,255,255,0.5); margin: 12px 20px; }
+    .field-line-bottom { border-bottom: 2px solid rgba(255,255,255,0.5); margin: 16px 20px 0; }
+    .pos-label {
+        font-size: 10px;
+        color: rgba(255,255,255,0.4);
+        text-align: center;
+        margin-bottom: 4px;
+        letter-spacing: 2px;
+        font-weight: 600;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("### 🏆 팬이 선택한 베스트 11")
+    st.caption("포지션별 응원 수 1위 선수 · 하트 누를수록 베스트 11 변동")
+
+    # ── 필드 렌더링 ───────────────────────────────────────────────────────────
+    st.markdown('<div class="field-container">', unsafe_allow_html=True)
+    st.markdown('<div class="field-line-top"></div>', unsafe_allow_html=True)
+
+    # FW — ST
+    st.markdown('<div class="pos-label">FW</div>', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
-    with c1: show_metric("LW")
-    with c2: show_metric("CAM")
-    with c3: show_metric("RW")
+    with c2:
+        st.markdown(player_card_html("ST"), unsafe_allow_html=True)
 
-    # CM 줄
-    _, c2, _ = st.columns(3)
-    with c2: show_metric("CM")
-
-    # CDM 줄
-    _, c2, _ = st.columns(3)
-    with c2: show_metric("CDM")
-
-    # LB / CB / RB 줄
+    # MF — LW / CAM / RW
+    st.markdown('<div class="pos-label">MF</div>', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
-    with c1: show_metric("LB")
-    with c2: show_metric("CB")
-    with c3: show_metric("RB")
+    with c1: st.markdown(player_card_html("LW",  "small"), unsafe_allow_html=True)
+    with c2: st.markdown(player_card_html("CAM"), unsafe_allow_html=True)
+    with c3: st.markdown(player_card_html("RW",  "small"), unsafe_allow_html=True)
 
-    # GK 줄
-    _, c2, _ = st.columns(3)
-    with c2: show_metric("GK")
+    # CM
+    c1, c2, c3 = st.columns(3)
+    with c2: st.markdown(player_card_html("CM"), unsafe_allow_html=True)
+
+    # CDM
+    c1, c2, c3 = st.columns(3)
+    with c2: st.markdown(player_card_html("CDM"), unsafe_allow_html=True)
+
+    st.markdown('<div class="field-line-mid"></div>', unsafe_allow_html=True)
+
+    # DF — LB / CB / RB
+    st.markdown('<div class="pos-label">DF</div>', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c1: st.markdown(player_card_html("LB",  "small"), unsafe_allow_html=True)
+    with c2: st.markdown(player_card_html("CB"), unsafe_allow_html=True)
+    with c3: st.markdown(player_card_html("RB",  "small"), unsafe_allow_html=True)
+
+    st.markdown('<div class="field-line-bottom"></div>', unsafe_allow_html=True)
+
+    # GK
+    st.markdown('<div class="pos-label">GK</div>', unsafe_allow_html=True)
+    c1, c2, c3 = st.columns(3)
+    with c2: st.markdown(player_card_html("GK"), unsafe_allow_html=True)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # ══════════════════════ TAB 3: 내 응원 ════════════════════════════════════════
 with tab3:
