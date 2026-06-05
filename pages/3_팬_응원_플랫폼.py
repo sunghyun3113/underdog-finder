@@ -228,139 +228,61 @@ with tab2:
                 "hearts": hearts,
                 "emoji":  player["emoji"],
                 "club":   player["club"],
+                "league": player["league"],
             }
 
-    # ── 선수 카드 HTML 생성 함수 ─────────────────────────────────────────────
-    def player_card_html(pos: str, size: str = "normal") -> str:
-        if pos in best_by_pos:
-            p           = best_by_pos[pos]
-            name        = p["name"]
-            emoji       = p["emoji"]
-            hearts_str  = f"{p['hearts']:,}"
-            club        = p["club"]
-            bg          = "rgba(236,72,153,0.2)"
-            border      = "rgba(236,72,153,0.6)"
-            text_color  = "#f9fafb"
-            heart_color = "#f472b6"
-        else:
-            name        = "TBD"
-            emoji       = "❓"
-            hearts_str  = "-"
-            club        = ""
-            bg          = "rgba(100,116,139,0.1)"
-            border      = "rgba(100,116,139,0.3)"
-            text_color  = "#64748b"
-            heart_color = "#64748b"
-
-        circle_size = "56px" if size == "normal" else "48px"
-        font_size   = "22px" if size == "normal" else "18px"
-
-        return f"""
-        <div style="text-align:center;padding:4px;">
-            <div style="
-                width:{circle_size};height:{circle_size};
-                background:{bg};
-                border:2px solid {border};
-                border-radius:50%;
-                display:flex;align-items:center;
-                justify-content:center;
-                font-size:{font_size};
-                margin:0 auto 6px;
-                box-shadow:0 0 12px {border};
-            ">{emoji}</div>
-            <div style="
-                color:{text_color};
-                font-size:13px;
-                font-weight:700;
-                margin-bottom:2px;
-            ">{name}</div>
-            <div style="
-                color:#94a3b8;
-                font-size:10px;
-                margin-bottom:2px;
-            ">{club}</div>
-            <div style="
-                color:{heart_color};
-                font-size:11px;
-                font-weight:600;
-            ">💗 {hearts_str}</div>
-        </div>
-        """
-
-    # ── 필드 CSS ─────────────────────────────────────────────────────────────
-    st.markdown("""
-    <style>
-    .field-container {
-        background: linear-gradient(
-            180deg,
-            #1a3d1a 0%, #1e4d1e 20%, #1a3d1a 40%,
-            #1e4d1e 60%, #1a3d1a 80%, #1e4d1e 100%
-        );
-        border-radius: 16px;
-        border: 3px solid #0f2d0f;
-        padding: 20px 12px;
-        margin: 0 auto;
-        max-width: 600px;
-    }
-    .field-line-top    { border-top:    2px solid rgba(255,255,255,0.5); margin: 0 20px 16px; }
-    .field-line-mid    { border-top:    2px solid rgba(255,255,255,0.5); margin: 12px 20px; }
-    .field-line-bottom { border-bottom: 2px solid rgba(255,255,255,0.5); margin: 16px 20px 0; }
-    .pos-label {
-        font-size: 10px;
-        color: rgba(255,255,255,0.4);
-        text-align: center;
-        margin-bottom: 4px;
-        letter-spacing: 2px;
-        font-weight: 600;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
     st.markdown("### 🏆 팬이 선택한 베스트 11")
-    st.caption("포지션별 응원 수 1위 선수 · 하트 누를수록 베스트 11 변동")
+    st.caption("포지션별 응원 수 1위 선수 · 하트를 누를수록 실시간 변동")
 
-    # ── 필드 렌더링 ───────────────────────────────────────────────────────────
-    st.markdown('<div class="field-container">', unsafe_allow_html=True)
-    st.markdown('<div class="field-line-top"></div>', unsafe_allow_html=True)
+    groups = {
+        "⚽ 공격":     ["ST", "LW", "RW"],
+        "🎯 미드필더": ["CAM", "CM", "CDM"],
+        "🛡️ 수비":    ["LB", "CB", "RB"],
+        "🧤 골키퍼":  ["GK"],
+    }
 
-    # FW — ST
-    st.markdown('<div class="pos-label">FW</div>', unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c2:
-        st.markdown(player_card_html("ST"), unsafe_allow_html=True)
-
-    # MF — LW / CAM / RW
-    st.markdown('<div class="pos-label">MF</div>', unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c1: st.markdown(player_card_html("LW",  "small"), unsafe_allow_html=True)
-    with c2: st.markdown(player_card_html("CAM"), unsafe_allow_html=True)
-    with c3: st.markdown(player_card_html("RW",  "small"), unsafe_allow_html=True)
-
-    # CM
-    c1, c2, c3 = st.columns(3)
-    with c2: st.markdown(player_card_html("CM"), unsafe_allow_html=True)
-
-    # CDM
-    c1, c2, c3 = st.columns(3)
-    with c2: st.markdown(player_card_html("CDM"), unsafe_allow_html=True)
-
-    st.markdown('<div class="field-line-mid"></div>', unsafe_allow_html=True)
-
-    # DF — LB / CB / RB
-    st.markdown('<div class="pos-label">DF</div>', unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c1: st.markdown(player_card_html("LB",  "small"), unsafe_allow_html=True)
-    with c2: st.markdown(player_card_html("CB"), unsafe_allow_html=True)
-    with c3: st.markdown(player_card_html("RB",  "small"), unsafe_allow_html=True)
-
-    st.markdown('<div class="field-line-bottom"></div>', unsafe_allow_html=True)
-
-    # GK
-    st.markdown('<div class="pos-label">GK</div>', unsafe_allow_html=True)
-    c1, c2, c3 = st.columns(3)
-    with c2: st.markdown(player_card_html("GK"), unsafe_allow_html=True)
-
-    st.markdown('</div>', unsafe_allow_html=True)
+    for group_name, positions in groups.items():
+        st.markdown(f"**{group_name}**")
+        cols = st.columns(len(positions))
+        for col, pos in zip(cols, positions):
+            with col:
+                if pos in best_by_pos:
+                    p = best_by_pos[pos]
+                    st.markdown(f"""
+                    <div style="
+                        background:rgba(236,72,153,0.08);
+                        border:1px solid rgba(236,72,153,0.3);
+                        border-radius:10px;
+                        padding:12px 8px;
+                        text-align:center;
+                    ">
+                        <div style="font-size:28px;margin-bottom:6px">{p['emoji']}</div>
+                        <div style="font-size:11px;color:#ec4899;
+                                    font-weight:600;margin-bottom:2px">{pos}</div>
+                        <div style="font-size:13px;font-weight:700;
+                                    color:#f9fafb;margin-bottom:2px">{p['name']}</div>
+                        <div style="font-size:10px;color:#94a3b8;
+                                    margin-bottom:4px">{p['club']}</div>
+                        <div style="font-size:12px;color:#f472b6;
+                                    font-weight:600">💗 {p['hearts']:,}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""
+                    <div style="
+                        background:rgba(100,116,139,0.08);
+                        border:1px dashed rgba(100,116,139,0.3);
+                        border-radius:10px;
+                        padding:12px 8px;
+                        text-align:center;
+                    ">
+                        <div style="font-size:28px;margin-bottom:6px">❓</div>
+                        <div style="font-size:11px;color:#64748b;
+                                    font-weight:600;margin-bottom:2px">{pos}</div>
+                        <div style="font-size:13px;color:#64748b">TBD</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
 
 # ══════════════════════ TAB 3: 내 응원 ════════════════════════════════════════
 with tab3:
