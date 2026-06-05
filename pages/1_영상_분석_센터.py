@@ -34,13 +34,6 @@ if "analysis_done" not in st.session_state:
 if "analyzed_ids" not in st.session_state:
     st.session_state.analyzed_ids = []
 
-# ── 실제 분석 완료 구단 ───────────────────────────────────────────────────────
-REAL_CLUBS = {
-    "시흥시민축구단": "K3",
-    "연세대학교":     "U리그",
-    "한남대학교":     "U리그",
-}
-
 # ── 사이드바 ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown(
@@ -68,26 +61,6 @@ with st.sidebar:
   • AI 모델: <b style='color:#e4e8f2'>YOLO v8</b> (선수 추적)
 </div>
 """, unsafe_allow_html=True)
-
-    st.markdown("---")
-
-    # 실제 분석 완료 구단
-    st.markdown(
-        "<p style='color:#94a3b8;font-size:0.72rem;font-weight:700;"
-        "letter-spacing:0.1em;text-transform:uppercase'>✅ 실제 분석 완료 구단</p>",
-        unsafe_allow_html=True,
-    )
-    for club, league in REAL_CLUBS.items():
-        st.markdown(
-            f"<div style='font-size:0.78rem;color:#10b981;margin-bottom:0.2rem'>"
-            f"✅ {club} <span style='color:#5a6478'>({league})</span></div>",
-            unsafe_allow_html=True,
-        )
-    st.markdown(
-        "<div style='font-size:0.76rem;color:#5a6478;margin-top:0.4rem'>"
-        "나머지 구단: AI 추정값</div>",
-        unsafe_allow_html=True,
-    )
 
     st.markdown("---")
 
